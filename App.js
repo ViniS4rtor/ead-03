@@ -22,8 +22,15 @@ export default function App() {
     Alert.alert('Informação', 'Tela de redefinição de senha em breve!');
   };
 
-  // Verifica se ambos os campos estão preenchidos (validação)
-  const camposPreenchidos = email.trim().length > 0 && senha.trim().length > 0;
+  // Função para validar email
+  const validarEmail = (email) => {
+    return email.includes('@') && email.indexOf('@') > 0 && email.indexOf('@') < email.length - 1;
+  };
+
+  // Verifica se ambos os campos estão preenchidos e email é válido
+  const camposPreenchidos = email.trim().length > 0 && 
+                           senha.trim().length > 0 && 
+                           validarEmail(email);
 
   return (
     <View style={styles.container}>
@@ -40,13 +47,16 @@ export default function App() {
       {/* Campo E-mail */}
       <Text style={styles.label}>E-mail:</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, email.length > 0 && !validarEmail(email) && styles.inputError]}
         placeholder="Digite seu e-mail"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
       />
+      {email.length > 0 && !validarEmail(email) && (
+        <Text style={styles.errorText}>Email deve conter @ e ter formato válido</Text>
+      )}
 
       {/* Campo Senha */}
       <Text style={styles.label}>Senha:</Text>
@@ -118,6 +128,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     fontSize: 16,
     marginBottom: 16,
+  },
+  inputError: {
+    borderColor: '#ff0000',
+    borderWidth: 2,
+  },
+  errorText: {
+    color: '#ff0000',
+    fontSize: 12,
+    alignSelf: 'flex-start',
+    marginTop: -12,
+    marginBottom: 8,
   },
   buttonArea: {
     width: '100%',
