@@ -1,20 +1,136 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Image, TextInput, Button, Alert, StyleSheet, Pressable } from 'react-native';
 
 export default function App() {
+
+  // Estado para armazenar e-mail e senha
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+
+  // Função chamada ao clicar no botão ENTRAR
+  const realizarLogin = () => {
+    Alert.alert('Sucesso', 'Login realizado com sucesso!');
+  };
+
+  // Função para o link de registro
+  const abrirRegistro = () => {
+    Alert.alert('Informação', 'Tela de Registro em breve!');
+  };
+
+  // Função para o link de redefinir senha
+  const redefinirSenha = () => {
+    Alert.alert('Informação', 'Tela de redefinição de senha em breve!');
+  };
+
+  // Verifica se ambos os campos estão preenchidos (validação)
+  const camposPreenchidos = email.trim().length > 0 && senha.trim().length > 0;
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      {/* Imagem/Logo acima dos campos */}
+      <Image
+        source={require('./assets/bk_logo.png')}
+        style={styles.image}
+        resizeMode="contain"
+      />
+
+      {/* Título */}
+      <Text style={styles.title}>Login</Text>
+
+      {/* Campo E-mail */}
+      <Text style={styles.label}>E-mail:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Digite seu e-mail"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
+      {/* Campo Senha */}
+      <Text style={styles.label}>Senha:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Digite sua senha"
+        value={senha}
+        onChangeText={setSenha}
+        secureTextEntry={true}
+      />
+
+      {/* Botão ENTRAR - desabilitado até ambos campos serem preenchidos */}
+      <View style={styles.buttonArea}>
+        <Button 
+          title="ENTRAR" 
+          onPress={realizarLogin} 
+          disabled={!camposPreenchidos} 
+        />
+      </View>
+
+      {/* Links clicáveis */}
+      <View style={styles.linksContainer}>
+        <Pressable onPress={abrirRegistro}>
+          <Text style={styles.link}>Registrar-se</Text>
+        </Pressable>
+        
+        <Pressable onPress={redefinirSenha}>
+          <Text style={styles.link}>Redefinir a Senha</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
+// FOLHA DE ESTILOS - é criada dinamicamente quando o programa entra no ar
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1,                       // ocupa a tela toda
+    justifyContent: 'center',      // centraliza verticalmente
+    alignItems: 'center',          // centraliza horizontalmente
+    padding: 24,
     backgroundColor: '#fff',
+  },
+  image: {
+    width: 300,
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 30,
+  },
+  label: {
+    alignSelf: 'flex-start',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 6,
+  },
+  input: {
+    width: '100%',
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#aaa',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  buttonArea: {
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  linksContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 15,
+  },
+  link: {
+    fontSize: 16,
+    color: '#007AFF',
+    textDecorationLine: 'underline',
   },
 });
