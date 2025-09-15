@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useMemo } from 'react';
+import { View, Text, TextInput, Alert, StyleSheet, Pressable, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 
 export default function ResetPasswordScreen({ navigation }) {
   const [senha, setSenha] = useState('');
@@ -7,7 +7,9 @@ export default function ResetPasswordScreen({ navigation }) {
   const senhaRef = useRef(null);
   const confirmarRef = useRef(null);
 
-  const validar = () => senha.trim() && confirmarSenha.trim();
+  const validar = useMemo(() => {
+    return senha.trim().length > 0 && confirmarSenha.trim().length > 0;
+  }, [senha, confirmarSenha]);
 
   const handleSalvar = () => {
     if (senha !== confirmarSenha) {
@@ -47,7 +49,15 @@ export default function ResetPasswordScreen({ navigation }) {
         />
 
         <View style={styles.buttonArea}>
-          <Button title="Salvar" onPress={handleSalvar} disabled={!validar()} />
+          <TouchableOpacity 
+            style={[styles.button, validar ? styles.buttonEnabled : styles.buttonDisabled]} 
+            onPress={handleSalvar} 
+            disabled={!validar}
+          >
+            <Text style={[styles.buttonText, validar ? styles.buttonTextEnabled : styles.buttonTextDisabled]}>
+              Salvar
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <Pressable onPress={() => navigation.navigate('Login')}>
@@ -64,5 +74,28 @@ const styles = StyleSheet.create({
   label: { alignSelf: 'flex-start', fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 6 },
   input: { width: '100%', height: 48, borderWidth: 1, borderColor: '#aaa', borderRadius: 8, paddingHorizontal: 12, fontSize: 16, marginBottom: 16 },
   buttonArea: { width: '100%', marginTop: 8, marginBottom: 20 },
+  button: {
+    width: '100%',
+    height: 48,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonEnabled: {
+    backgroundColor: '#007AFF',
+  },
+  buttonDisabled: {
+    backgroundColor: '#cccccc',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonTextEnabled: {
+    color: '#ffffff',
+  },
+  buttonTextDisabled: {
+    color: '#666666',
+  },
   link: { fontSize: 16, color: '#007AFF', textDecorationLine: 'underline' },
 });

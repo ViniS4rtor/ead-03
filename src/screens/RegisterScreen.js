@@ -1,5 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState, useRef, useMemo } from 'react';
+import { View, Text, TextInput, Alert, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const USERS_STORAGE_KEY = '@usuarios_registrados';
 
 export default function RegisterScreen({ navigation }) {
   const [cpf, setCpf] = useState('');
@@ -10,12 +13,74 @@ export default function RegisterScreen({ navigation }) {
   const emailRef = useRef(null);
   const senhaRef = useRef(null);
 
-  const validarEmail = (value) => value.includes('@') && value.indexOf('@') > 0 && value.indexOf('@') < value.length - 1;
-  const camposPreenchidos = cpf.trim() && nome.trim() && email.trim() && senha.trim() && validarEmail(email);
+  const validarEmail = (value) => {
+    return value.includes('@') && value.indexOf('@') > 0 && value.indexOf('@') < value.length - 1;
+  };
+  
+  // Usar useMemo para garantir que a validação seja reativa
+  const camposPreenchidos = useMemo(() => {
+    return cpf.trim().length > 0 && 
+           nome.trim().length > 0 && 
+           email.trim().length > 0 && 
+           senha.trim().length > 0 && 
+           validarEmail(email.trim());
+  }, [cpf, nome, email, senha]);
 
-  const handleSalvar = () => {
-    Alert.alert('Usuário registrado com sucesso');
-    navigation.navigate('Login');
+  const handleSalvar = async () => {
+    try {
+      // Buscar usuários existentes
+      const usuariosExistentes = await AsyncStorage.getItem(USERS_STORAGE_KEY);
+      let usuarios = usuariosExistentes ? JSON.parse(usuariosExistentes) : [];
+
+      // Verificar se o email já existe
+      const emailJaExiste = usuarios.some(usuario => usuario.email === email);
+      if (emailJaExiste) {
+        Alert.alert('Erro', 'Este email já está cadastrado!');
+        return;
+      }
+
+      // Verificar se o CPF já existe
+      const cpfJaExiste = usuarios.some(usuario => usuario.cpf === cpf);
+      if (cpfJaExiste) {
+        Alert.alert('Erro', 'Este CPF já está cadastrado!');
+        return;
+      }
+
+      // Criar novo usuário
+      const novoUsuario = {
+        id: Date.now(),
+        cpf: cpf.trim(),
+        nome: nome.trim(),
+        email: email.trim().toLowerCase(),
+        senha: senha.trim(),
+        dataRegistro: new Date().toISOString()
+      };
+
+      // Adicionar à lista e salvar
+      usuarios.push(novoUsuario);
+      await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usuarios));
+
+      Alert.alert(
+        'Sucesso', 
+        'Usuário registrado com sucesso!',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Limpar campos
+              setCpf('');
+              setNome('');
+              setEmail('');
+              setSenha('');
+              navigation.navigate('Login');
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível salvar o usuário. Tente novamente.');
+      console.error('Erro ao salvar usuário:', error);
+    }
   };
 
   return (
@@ -71,7 +136,15 @@ export default function RegisterScreen({ navigation }) {
         />
 
         <View style={styles.buttonArea}>
-          <Button title="Salvar" onPress={handleSalvar} disabled={!camposPreenchidos} />
+          <TouchableOpacity 
+            style={[styles.button, camposPreenchidos ? styles.buttonEnabled : styles.buttonDisabled]} 
+            onPress={handleSalvar} 
+            disabled={!camposPreenchidos}
+          >
+            <Text style={[styles.buttonText, camposPreenchidos ? styles.buttonTextEnabled : styles.buttonTextDisabled]}>
+              Salvar
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <Pressable onPress={() => navigation.navigate('Login')}>
@@ -90,5 +163,28 @@ const styles = StyleSheet.create({
   inputError: { borderColor: '#ff0000', borderWidth: 2 },
   errorText: { color: '#ff0000', fontSize: 12, alignSelf: 'flex-start', marginTop: -12, marginBottom: 8 },
   buttonArea: { width: '100%', marginTop: 8, marginBottom: 20 },
+  button: {
+    width: '100%',
+    height: 48,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonEnabled: {
+    backgroundColor: '#007AFF',
+  },
+  buttonDisabled: {
+    backgroundColor: '#cccccc',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonTextEnabled: {
+    color: '#ffffff',
+  },
+  buttonTextDisabled: {
+    color: '#666666',
+  },
   link: { fontSize: 16, color: '#007AFF', textDecorationLine: 'underline' },
 });
