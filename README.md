@@ -1,4 +1,4 @@
-# ead-02
+# ead-03
 
 App Expo com telas de Login, Cadastro e Redefinição de Senha para prática de estado, inputs, navegação e validação.
 
