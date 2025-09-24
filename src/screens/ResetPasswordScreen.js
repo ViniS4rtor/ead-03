@@ -1,30 +1,65 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { View, Text, TextInput, Alert, StyleSheet, Pressable, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const USERS_STORAGE_KEY = '@usuarios_registrados';
 
 export default function ResetPasswordScreen({ navigation }) {
+  const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const senhaRef = useRef(null);
   const confirmarRef = useRef(null);
 
+  const validarEmail = (v) => v.includes('@') && v.indexOf('@') > 0 && v.indexOf('@') < v.length - 1;
   const validar = useMemo(() => {
-    return senha.trim().length > 0 && confirmarSenha.trim().length > 0;
-  }, [senha, confirmarSenha]);
+    return validarEmail(email.trim()) && senha.trim().length > 0 && confirmarSenha.trim().length > 0;
+  }, [email, senha, confirmarSenha]);
 
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     if (senha !== confirmarSenha) {
       Alert.alert('Senhas não são iguais');
       senhaRef.current?.focus();
       return;
     }
-    Alert.alert('Senha redefinida com sucesso');
-    navigation.navigate('Login');
+    try {
+      const data = await AsyncStorage.getItem(USERS_STORAGE_KEY);
+      const usuarios = data ? JSON.parse(data) : [];
+      const idx = usuarios.findIndex(u => u.email === email.trim().toLowerCase());
+
+      if (idx === -1) {
+        Alert.alert('Erro', 'Email não encontrado.');
+        return;
+      }
+
+      usuarios[idx] = { ...usuarios[idx], senha: senha.trim() };
+      await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usuarios));
+
+      Alert.alert('Sucesso', 'Senha redefinida com sucesso!', [
+        { text: 'OK', onPress: () => navigation.navigate('Login') }
+      ]);
+    } catch (e) {
+      console.error('Erro ao redefinir senha:', e);
+      Alert.alert('Erro', 'Não foi possível redefinir a senha.');
+    }
   };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.container}>
         <Text style={styles.title}>Redefinir Senha</Text>
+
+        <Text style={styles.label}>Email:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite seu email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          returnKeyType="next"
+          onSubmitEditing={() => senhaRef.current?.focus()}
+        />
 
         <Text style={styles.label}>Senha:</Text>
         <TextInput

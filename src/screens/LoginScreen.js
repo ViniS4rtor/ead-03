@@ -36,8 +36,8 @@ export default function LoginScreen({ navigation }) {
                 // Limpar campos após login bem-sucedido
                 setEmail('');
                 setSenha('');
-                // Aqui você pode navegar para uma tela principal se existir
-                // navigation.navigate('Home');
+                // Navegar para a tela de perfil passando o usuário logado
+                navigation.navigate('Profile', { usuario: usuarioEncontrado });
               }
             }
           ]
